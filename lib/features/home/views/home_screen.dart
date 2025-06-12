@@ -1,3 +1,4 @@
+import 'package:asistiot_project/features/add_device/views/add_device_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/home_viewmodel.dart';
@@ -20,7 +21,15 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () { /* TODO: Navegar a la pantalla de añadir dispositivo */ },
+            onPressed: () {
+              // Navegamos a la pantalla de detalles, pasando el ID del dispositivo
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddDeviceScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
