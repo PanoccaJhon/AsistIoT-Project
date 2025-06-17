@@ -1,112 +1,126 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+// Enum para manejar los estados de la UI de forma clara
+enum AddDeviceStatus { idle, scanning, noResults, resultsFound, connecting, connected, error }
+
 class AddDeviceViewModel extends ChangeNotifier {
-  // --- UUIDs ---
-  // Estos UUIDs deben coincidir EXACTAMENTE con los definidos en el código del ESP32
+  // --- UUIDs (deben coincidir con el ESP32) ---
   final Guid _serviceUuid = Guid("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
   final Guid _characteristicUuid = Guid("beb5483e-36e1-4688-b7f5-ea07361b26a8");
 
   // --- Estado de la UI ---
-  bool _isScanning = false;
-  bool get isScanning => _isScanning;
+  AddDeviceStatus _status = AddDeviceStatus.idle;
+  AddDeviceStatus get status => _status;
 
-  bool _isConnecting = false;
-  bool get isConnecting => _isConnecting;
+  String _errorMessage = "";
+  String get errorMessage => _errorMessage;
 
-  List<ScanResult> _scanResults = [];
-  List<ScanResult> get scanResults => _scanResults;
-  
+  // --- Estado de BLE ---
+  Stream<List<ScanResult>> get scanResultsStream => FlutterBluePlus.scanResults;
   BluetoothDevice? _selectedDevice;
   BluetoothDevice? get selectedDevice => _selectedDevice;
 
-  // --- Controladores para el formulario ---
+  // --- Controladores de Texto ---
   final TextEditingController ssidController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  void startScan() async{
-    _isScanning = true;
-    notifyListeners();
-    // Limpiar resultados previos
-    _scanResults.clear();
-    // Empezar a escanear. Se puede filtrar por el Service UUID para encontrar solo nuestros dispositivos
-    FlutterBluePlus.startScan(timeout: const Duration(seconds: 15));
-    await FlutterBluePlus.isScanning.firstWhere((isScanning) => !isScanning);
-    // Escuchar los resultados
-    FlutterBluePlus.scanResults.listen((results) {
-      _scanResults = results;
-      notifyListeners();
+  AddDeviceViewModel() {
+    // Escuchar si el usuario apaga o enciende el Bluetooth del teléfono
+    FlutterBluePlus.adapterState.listen((state) {
+      if (state != BluetoothAdapterState.on) {
+        _status = AddDeviceStatus.error;
+        _errorMessage = "Por favor, enciende el Bluetooth para continuar.";
+        notifyListeners();
+      } else {
+        if (_status == AddDeviceStatus.error) {
+          _status = AddDeviceStatus.idle;
+          notifyListeners();
+        }
+      }
     });
-
-    _isScanning = false;
-    notifyListeners();
   }
 
-  void stopScan() {
-    FlutterBluePlus.stopScan();
+  Future<void> startScan() async {
+    // No escanear si ya lo está haciendo
+    if (_status == AddDeviceStatus.scanning) return;
+
+    _status = AddDeviceStatus.scanning;
+    notifyListeners();
+
+    try {
+      // Escanear por 5 segundos. La lista se actualizará gracias al Stream.
+      await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+      
+      // Esperar a que el escaneo termine
+      await FlutterBluePlus.isScanning.where((val) => val == false).first;
+
+      // Comprobar si hay resultados después de escanear
+      final results = await FlutterBluePlus.scanResults.first;
+      if (results.where((r) => r.device.platformName.isNotEmpty).isEmpty) {
+        _status = AddDeviceStatus.noResults;
+      } else {
+        _status = AddDeviceStatus.resultsFound;
+      }
+    } catch(e) {
+      _status = AddDeviceStatus.error;
+      _errorMessage = "Error al escanear: $e";
+    } finally {
+      notifyListeners();
+    }
   }
 
   Future<void> connectToDevice(BluetoothDevice device) async {
-    stopScan();
+    _status = AddDeviceStatus.connecting;
     _selectedDevice = device;
-    _isConnecting = true;
     notifyListeners();
     
     try {
-      await device.connect();
+      await device.connect(timeout: const Duration(seconds: 10));
+      _status = AddDeviceStatus.connected;
     } catch(e) {
       print("ERROR AL CONECTAR: $e");
-      // Manejar error de conexión
+      _status = AddDeviceStatus.error;
+      _errorMessage = "No se pudo conectar al dispositivo. Inténtalo de nuevo.";
+      _selectedDevice = null;
+    } finally {
+      notifyListeners();
     }
-    _isConnecting = false;
-    notifyListeners();
   }
 
   Future<bool> sendWifiCredentials() async {
-    if (_selectedDevice == null) return false;
+    if (_selectedDevice == null || _status != AddDeviceStatus.connected) return false;
 
-    _isConnecting = true;
+    _status = AddDeviceStatus.connecting; // Reusamos el estado "connecting" para mostrar un loader
     notifyListeners();
 
     try {
-      // 1. Descubrir servicios
       List<BluetoothService> services = await _selectedDevice!.discoverServices();
-      
-      // 2. Encontrar nuestro servicio específico
       final targetService = services.firstWhere((s) => s.uuid == _serviceUuid);
-
-      // 3. Encontrar nuestra característica específica
       final targetCharacteristic = targetService.characteristics.firstWhere((c) => c.uuid == _characteristicUuid);
       
-      // 4. Formatear las credenciales en JSON
-      final credentials = {
-        "ssid": ssidController.text,
-        "pass": passwordController.text
-      };
-      final jsonString = jsonEncode(credentials);
-      final dataToSend = utf8.encode(jsonString); // Convertir a bytes
+      final credentials = {"ssid": ssidController.text, "pass": passwordController.text};
+      final dataToSend = utf8.encode(jsonEncode(credentials));
 
-      // 5. Escribir los datos en la característica
       await targetCharacteristic.write(dataToSend);
 
-      print("Credenciales enviadas exitosamente!");
       await _selectedDevice!.disconnect();
-      _selectedDevice = null;
-      _isConnecting = false;
-      notifyListeners();
       return true;
-
     } catch (e) {
       print("ERROR AL ENVIAR CREDENCIALES: $e");
-      _isConnecting = false;
-      notifyListeners();
+      _errorMessage = "Fallo al enviar datos. El dispositivo puede haberse desconectado.";
+      _status = AddDeviceStatus.error;
       return false;
+    } finally {
+      notifyListeners();
     }
   }
-
+  
   @override
   void dispose() {
+    FlutterBluePlus.stopScan();
     ssidController.dispose();
     passwordController.dispose();
     super.dispose();

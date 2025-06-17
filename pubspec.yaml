@@ -10,8 +10,13 @@ dependencies:
   flutter:
     sdk: flutter
   provider: ^6.1.2
-  cupertino_icons: ^1.0.2
-  flutter_blue_plus: ^1.31.18 
+  cupertino_icons: ^1.0.2 # Cupertino icons for iOS
+  flutter_blue_plus: ^1.31.18  # For Bluetooth functionality
+  permission_handler: ^11.3.1 # For handling permissions
+  lottie: ^3.1.2 # Animation library for Flutter
+  amplify_flutter: ^1.0.0 # Core Amplify library
+  amplify_auth_cognito: ^1.0.0 # Authentication with Cognito
+  amplify_secure_storage_dart: ^0.4.4
 
 dev_dependencies:
   flutter_test:
@@ -20,3 +25,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/
+
