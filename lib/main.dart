@@ -10,7 +10,6 @@ import 'config/amplifyconfiguration.dart';
 
 import 'core/services/iot_repository.dart';
 import 'features/home/viewmodels/home_viewmodel.dart';
-import 'features/home/views/home_screen.dart';
 import 'features/auth/views/auth_wrapper.dart';
 
 import 'config/app_colors.dart';
