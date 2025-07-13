@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:asistiot_project/core/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:provider/provider.dart';
 
 // Enum para manejar los estados de la UI de forma clara
 enum AddDeviceStatus { idle, scanning, noResults, resultsFound, connecting, connected, error }
@@ -90,7 +92,7 @@ class AddDeviceViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> sendWifiCredentials() async {
+  Future<bool> sendWifiCredentials(BuildContext context) async {
     if (_selectedDevice == null || _status != AddDeviceStatus.connected) return false;
 
     _status = AddDeviceStatus.connecting; // Reusamos el estado "connecting" para mostrar un loader
@@ -105,9 +107,16 @@ class AddDeviceViewModel extends ChangeNotifier {
       final dataToSend = utf8.encode(jsonEncode(credentials));
 
       await targetCharacteristic.write(dataToSend);
-
+      final thingName = _selectedDevice!.platformName;
       await _selectedDevice!.disconnect();
-      return true;
+      _selectedDevice = null;
+
+      final apiService = context.read()<ApiService>();
+      final success = await apiService.associateDevice(thingName);
+
+      //_isConnecting = false;
+      notifyListeners();
+      return success;
     } catch (e) {
       print("ERROR AL ENVIAR CREDENCIALES: $e");
       _errorMessage = "Fallo al enviar datos. El dispositivo puede haberse desconectado.";

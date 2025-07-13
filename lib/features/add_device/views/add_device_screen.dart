@@ -262,7 +262,7 @@ Future<void> _checkPermissions() async {
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () async {
-                      final success = await viewModel.sendWifiCredentials();
+                      final success = await viewModel.sendWifiCredentials(context);
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
