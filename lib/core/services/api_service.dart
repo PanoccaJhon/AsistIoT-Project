@@ -44,6 +44,7 @@ class ApiService {
         queryParameters: {'email': userEmail},
       );
       final response = await restOperation.response;
+      print(response.decodeBody());
       
       // Devuelve la lista JSON directamente, el Repositorio se encargará de mapearla.
       return jsonDecode(response.decodeBody()) as List<dynamic>;

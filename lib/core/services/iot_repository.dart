@@ -30,7 +30,7 @@ class ApiIotRepository implements IotRepository {
     final devicesData = await _apiService.listDevices();
     // Aquí se podrían combinar los datos de la lista con su estado si fuera necesario
     return devicesData
-        .map((d) => LightDevice(id: d['thingName'], name: d['thingName'])) // Simplificado
+        .map((d) => LightDevice(id: d['thingName'], name: d['thingName'], online: d['online'])) // Simplificado
         .toList();
   }
 
