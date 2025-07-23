@@ -1,10 +1,20 @@
 import 'dart:convert';
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 
 /// ApiService es responsable de todas las comunicaciones directas con AWS a través de Amplify.
 /// No conoce los modelos de la UI, solo maneja peticiones y respuestas crudas.
 class ApiService {
+
+  Future<dynamic> getDeviceById(String deviceId) async {
+    try {
+      final restOperation = Amplify.API.get('/dispositivos/$deviceId');
+      final response = await restOperation.response;
+      return jsonDecode(response.decodeBody());
+    } on ApiException catch (e) {
+      safePrint('Error al obtener dispositivo $deviceId: $e');
+      rethrow;
+    }
+  }
 
   /// Asocia un nuevo dispositivo a la cuenta del usuario.
   Future<bool> associateDevice(String thingName) async {
@@ -79,6 +89,7 @@ class ApiService {
         '/comandos/$deviceId', // Endpoint para enviar comandos
         body: body,
       );
+
       final response = await restOperation.response;
 
       if (response.statusCode != 202) {

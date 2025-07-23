@@ -30,8 +30,13 @@ class DeviceDetailViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final deviceData = await _repository.getDeviceState(deviceId);
-      _device = LightDevice.fromJson(deviceId, deviceId, deviceData); // Asumiendo name = id
+      final device = await _repository.getDeviceById(deviceId);
+      final state = await _repository.getDeviceState(deviceId);
+      // Actualiza el dispositivo con los datos obtenidos
+      _device = device.copyWith(
+        online: state['online'] ?? false,
+        lastSeenTimestamp: state['last_updated'] as int? ?? 0,
+      );
       _errorMessage = null;
     } catch (e) {
       _errorMessage = 'Error al cargar los datos del dispositivo: $e';

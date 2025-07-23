@@ -2,23 +2,19 @@
 class LightDevice {
   final String id;
   final String name;
-  final bool isOn;
-  final bool isAutoMode;
-  final bool? motionDetected;
-  final int? lightLevel;
-  
-  // --- CAMPOS NUEVOS ---
-  /// Indica si el dispositivo está actualmente conectado a AWS IoT.
   final bool online;
-  /// Timestamp (en milisegundos) de la última vez que el dispositivo reportó su estado.
+  final bool luz1;
+  final bool luz2;
+  final bool isAutoMode;
+  final int? lightLevel;
   final int lastSeenTimestamp;
 
   LightDevice({
     required this.id,
     required this.name,
-    this.isOn = false,
+    this.luz1 = false,
+    this.luz2 = false,
     this.isAutoMode = true,
-    this.motionDetected,
     this.lightLevel,
     this.online = false,
     this.lastSeenTimestamp = 0,
@@ -40,10 +36,7 @@ class LightDevice {
     return LightDevice(
       id: id,
       name: name,
-      // Asumimos que 'luz1' es la luz principal.
-      isOn: lights['luz1'] == 'ON', 
       isAutoMode: config['modo_auto'] ?? true,
-      motionDetected: sensors['movimiento'],
       lightLevel: sensors['lux'],
       // Idealmente, tu Lambda también devolvería el estado de conexión.
       online: json['online'] ?? false, 
@@ -57,6 +50,8 @@ class LightDevice {
     String? id,
     String? name,
     bool? isOn,
+    bool? luz1,
+    bool? luz2,
     bool? isAutoMode,
     bool? motionDetected,
     int? lightLevel,
@@ -66,9 +61,9 @@ class LightDevice {
     return LightDevice(
       id: id ?? this.id,
       name: name ?? this.name,
-      isOn: isOn ?? this.isOn,
+      luz1: luz1 ?? this.luz1,
+      luz2: luz2 ?? this.luz2,
       isAutoMode: isAutoMode ?? this.isAutoMode,
-      motionDetected: motionDetected ?? this.motionDetected,
       lightLevel: lightLevel ?? this.lightLevel,
       online: online ?? this.online,
       lastSeenTimestamp: lastSeenTimestamp ?? this.lastSeenTimestamp,
@@ -77,6 +72,6 @@ class LightDevice {
 
   @override
   String toString() {
-    return 'LightDevice(id: $id, name: $name, isOn: $isOn, online: $online)';
+    return 'LightDevice(id: $id, name: $name, online: $online)';
   }
 }

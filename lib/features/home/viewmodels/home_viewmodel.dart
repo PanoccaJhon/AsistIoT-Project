@@ -14,7 +14,9 @@ class HomeViewModel extends ChangeNotifier {
     required IotRepository repository,
     required AuthService authService,
   })  : _repository = repository,
-        _authService = authService;
+        _authService = authService{
+          _initSpeech();
+        }
 
   // --- ESTADO ---
   bool _isLoading = false;
@@ -29,9 +31,26 @@ class HomeViewModel extends ChangeNotifier {
   // AÑADIDO: Estado para el email del usuario
   String? _userEmail;
   String? get userEmail => _userEmail;
+
+  // ------------------------------------------
+  bool _isListening = false;
+  bool get isListening => _isListening;
+  
+  String _lastRecognizedWords = "";
+  String get lastRecognizedWords => _lastRecognizedWords;
   // ------------------------------------------
 
   // --- LÓGICA / ACCIONES ---
+  void _initSpeech() async {
+    
+  }
+
+  void startListening() async {
+    
+  }
+  void stopListening() {
+    
+  }
 
   Future<void> loadInitialData() async {
     _isLoading = true;
@@ -105,34 +124,8 @@ class HomeViewModel extends ChangeNotifier {
     await _authService.signOut();
   }
 
-  Future<void> toggleLight(String deviceId) async {
-    final deviceIndex = _devices.indexWhere((d) => d.id == deviceId);
-    if (deviceIndex == -1) return;
 
-    final device = _devices[deviceIndex];
-    final newStatus = !device.isOn;
+  void processVoiceCommand(String command) {
     
-    final originalDevices = List<LightDevice>.from(_devices);
-
-    _devices[deviceIndex] = device.copyWith(isOn: newStatus);
-    notifyListeners();
-
-    try {
-      final command = {'estado_luces': {'luz1': newStatus ? 'ON' : 'OFF'}};
-      await _repository.sendCommand(deviceId, jsonEncode(command));
-    } catch (e) {
-      _devices = originalDevices;
-      print("Error al enviar comando, revirtiendo estado: $e");
-      notifyListeners();
-    }
-  }
-
-  Future<void> processVoiceCommand(String command) async {
-    // Aquí podrías implementar lógica para procesar comandos de voz
-    // Por ejemplo, encender/apagar luces, cambiar modos, etc.
-    // Este es un ejemplo simple que solo imprime el comando.
-    print("Comando de voz recibido: $command");
-    
-    // Podrías llamar a toggleLight o cualquier otra acción según el comando.
   }
 }

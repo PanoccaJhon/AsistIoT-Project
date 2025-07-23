@@ -55,5 +55,9 @@
      <string>Need Location permission</string>  
      <key>NSLocationWhenInUseUsageDescription</key>  
      <string>Need Location permission</string>
+	 <key>NSSpeechRecognitionUsageDescription</key>
+<string>Esta app necesita acceso al reconocimiento de voz para controlar tus dispositivos.</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Esta app necesita acceso al micrófono para poder usar los comandos de voz.</string>
 </dict>
 </plist>

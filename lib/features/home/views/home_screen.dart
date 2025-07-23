@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _buildBody(context, viewModel),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          viewModel.processVoiceCommand("encender luz del dormitorio");
+          viewModel.isListening ? viewModel.stopListening() : viewModel.startListening();
         },
         tooltip: 'Control por Voz',
         child: const Icon(Icons.mic),
@@ -116,13 +116,9 @@ class _DeviceCard extends StatelessWidget {
       color: isOnline ? null : Theme.of(context).colorScheme.surface.withOpacity(0.5),
       elevation: isOnline ? null : 0.5,
       child: ListTile(
-        // MODIFICADO: La propiedad 'enabled' deshabilita visualmente el ListTile (texto e íconos en gris).
-        enabled: isOnline,
         contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         onTap: () {
-          // MODIFICADO: Lógica condicional al presionar la tarjeta.
-          if (isOnline) {
-            // Si está online, navega a la pantalla de detalles.
+          
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -134,20 +130,12 @@ class _DeviceCard extends StatelessWidget {
                 viewModel.refresh();
               }
             });
-          } else {
-            // Si está offline, muestra un mensaje informativo.
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('El dispositivo está desconectado. No se pueden ver detalles ni enviar comandos.'),
-                duration: Duration(seconds: 3),
-              ),
-            );
-          }
+          
         },
         leading: Icon(
           Icons.lightbulb_outline_rounded,
           // El color ahora solo depende de si la luz está ON, `enabled` se encarga del gris.
-          color: device.isOn ? Colors.amber.shade700 : null,
+          color: device.luz1 ? Colors.amber.shade700 : null,
           size: 40,
         ),
         title: Row(
@@ -165,13 +153,6 @@ class _DeviceCard extends StatelessWidget {
               ? 'Conectado • Modo auto: ${device.isAutoMode ? "ON" : "OFF"}'
               : 'Desconectado',
           style: TextStyle(color: isOnline ? null : Colors.red.shade400),
-        ),
-        trailing: Switch.adaptive(
-          value: device.isOn,
-          // MODIFICADO: El switch se deshabilita si el dispositivo no está online.
-          onChanged: isOnline
-              ? (newValue) => viewModel.toggleLight(device.id)
-              : null, // Asignar null a onChanged deshabilita el widget.
         ),
       ),
     );
