@@ -117,6 +117,9 @@ class DeviceDetailScreen extends StatelessWidget {
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
+                                  Switch.adaptive(value: device.luz1, onChanged: (value) {
+                                    viewModel.toggleLight(value, 1);
+                                  })
                                 ],
                               ),
                             ),
@@ -158,6 +161,9 @@ class DeviceDetailScreen extends StatelessWidget {
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
+                                  Switch.adaptive(value: device.luz2, onChanged: (value) {
+                                    viewModel.toggleLight(value, 2);
+                                  })
                                 ],
                               ),
                             ),

@@ -53,16 +53,20 @@ class DeviceDetailViewModel extends ChangeNotifier {
   }
 
   /// Envía el comando para encender/apagar una luz.
-  Future<void> toggleLight(bool isOn) async {
+  Future<void> toggleLight(bool isOn , int luzIndex) async {
     if (_device == null) return;
 
     final originalState = _device!;
     // Actualización optimista: Cambia el estado en la UI inmediatamente.
-    _device = _device!.copyWith(isOn: isOn);
+    if (luzIndex == 1) {
+      _device = _device!.copyWith(luz1: isOn);
+    } else if (luzIndex == 2) {
+      _device = _device!.copyWith(luz2: isOn);
+    }
     notifyListeners();
 
     try {
-      final command = {'estado_luces': {'luz1': isOn ? 'ON' : 'OFF'}};
+      final command = { 'luz1': _device!.luz1 ? 'ON' : 'OFF', 'luz2': _device!.luz2 ? 'ON' : 'OFF'};
       await _repository.sendCommand(deviceId, jsonEncode(command));
     } catch (e) {
       // Si falla, revierte al estado original y muestra el error.
@@ -83,7 +87,7 @@ class DeviceDetailViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final command = {'config': {'modo_auto': isAuto}};
+      final command = {'modo_auto': isAuto};
       await _repository.sendCommand(deviceId, jsonEncode(command));
     } catch (e) {
       // Reversión en caso de error
