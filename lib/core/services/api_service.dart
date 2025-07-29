@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:asistiot_project/data/models/motion_event.dart';
 
 /// ApiService es responsable de todas las comunicaciones directas con AWS a través de Amplify.
 /// No conoce los modelos de la UI, solo maneja peticiones y respuestas crudas.
@@ -113,6 +114,29 @@ class ApiService {
       }
     } on Exception catch (e) {
       safePrint('Error al desvincular el dispositivo $deviceId: $e');
+      rethrow;
+    }
+  }
+
+  /// Obtiene el historial de eventos de movimiento para un dispositivo específico.
+  /// Devuelve una lista de objetos MotionEvent.
+  Future<List<MotionEvent>> getMotionHistory(String thingName) async {
+    try {
+
+      final restOperation = Amplify.API.get('/dispositivos/$thingName/historial');
+
+      final response = await restOperation.response;
+
+      if (response.statusCode == 200) {
+        // El cuerpo es una lista de objetos JSON
+        final List<dynamic> data = jsonDecode(response.decodeBody());
+        // Mapeamos cada objeto JSON a nuestro modelo MotionEvent
+        return data.map((json) => MotionEvent.fromJson(json)).toList();
+      } else {
+        throw Exception('Error al obtener el historial: ${response.statusCode}');
+      }
+    } on Exception catch (e) {
+      safePrint('Error en getMotionHistory para $thingName: $e');
       rethrow;
     }
   }

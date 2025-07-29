@@ -84,7 +84,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         appBar: AppBar(title: const Text('Añadir Dispositivo')),
         body: Consumer<AddDeviceViewModel>(
           builder: (context, viewModel, child) {
-            // MODIFICADO: Añadimos un nuevo caso para la pantalla de reinicio
             switch (viewModel.status) {
               case AddDeviceStatus.connected:
                 return _buildWifiFormUI(context, viewModel);
@@ -187,7 +186,11 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                 leading: const Icon(Icons.memory, size: 36),
                 title: Text(result.device.platformName),
                 subtitle: Text("Señal: ${result.rssi} dBm"),
-                onTap: () => viewModel.connectToDevice(result.device),
+                onTap: () => {
+                  if (AddDeviceStatus.scanning != viewModel.status) {
+                    viewModel.connectToDevice(result.device)
+                  }
+                },
               ),
             );
           },

@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:asistiot_project/core/services/api_service.dart';
 import '../../data/models/light_device.dart';
+import '../../data/models/motion_event.dart';
 
 /// La abstracción del repositorio. Define el contrato de lo que la app
 /// puede hacer con los datos de IoT, sin saber cómo se hace.
@@ -18,6 +18,9 @@ abstract class IotRepository {
 
   /// Desvincula un dispositivo de la cuenta del usuario.
   Future<void> unlinkDevice(String deviceId);
+
+  /// Obtiene el historial de eventos de movimiento para un dispositivo específico.
+  Future<List<MotionEvent>> getMotionHistory(String thingName);
 }
 
 
@@ -74,5 +77,13 @@ class ApiIotRepository implements IotRepository {
   Future<void> unlinkDevice(String deviceId) {
     // Llama a la API para desvincular el dispositivo (DELETE).
     return _apiService.unlinkDevice(deviceId);
+  }
+
+  @override
+  Future<List<MotionEvent>> getMotionHistory(String thingName) async {
+    // Llama a la API para obtener el historial de eventos de movimiento.
+    final eventsData = await _apiService.getMotionHistory(thingName);
+
+    return eventsData;
   }
 }
