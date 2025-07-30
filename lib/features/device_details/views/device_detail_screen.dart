@@ -35,10 +35,10 @@ class DeviceDetailScreen extends StatelessWidget {
                   viewModel
                       .handleVoiceCommand, // Llama a la función del ViewModel
               backgroundColor:
-                  viewModel.isListening
+                  viewModel.isRecording
                       ? Colors.redAccent
                       : Theme.of(context).primaryColor,
-              child: Icon(viewModel.isListening ? Icons.mic_off : Icons.mic),
+              child: Icon(viewModel.isRecording ? Icons.mic_off : Icons.mic),
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerFloat,

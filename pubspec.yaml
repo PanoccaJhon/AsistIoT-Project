@@ -24,7 +24,7 @@ dependencies:
   http: ^1.4.0 # HTTP requests
   record: ^6.0.0 # Microphone stream for audio input
   googleapis_auth: ^2.0.0 # Dialogflow integration for voice commands
-  speech_to_text: ^5.6.1 # Speech-to-text functionality
+  path_provider: ^2.1.5 # File system access
 
 dev_dependencies:
   flutter_test:
